@@ -1,0 +1,29 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/entroprise-production/qa-client:$COMMIT_SHA', '.']
+    env:
+    - 'NODE_ENV=production'
+
+  # Push the image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/entroprise-production/qa-client:$COMMIT_SHA']
+
+  # Deploy image to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+    - 'run'
+    - 'deploy'
+    - 'qa-client'
+    - '--image'
+    - 'gcr.io/entroprise-production/qa-client:$COMMIT_SHA'
+    - '--region'
+    - 'us-central1'
+    - '--allow-unauthenticated'
+    - '--platform'
+    - 'managed'
+    - '--memory=2Gi'
+    env:
+    - 'PORT=3000'
+images:
+- gcr.io/entroprise-production/qa-client
